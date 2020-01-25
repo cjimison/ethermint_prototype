@@ -26,7 +26,11 @@ The following is a list of local software you will need to have installed to run
 
 NOTE:
 
-The software assumes that you have Python at version 3.6 so if you run `python --version` and get back 2.x then you need to switch your default python around. 
+The software assumes that you have Python at version 3.6 so if you run `python --version` and get back 2.x then you need to switch your default python around.
+
+## Google Cloud SDK
+
+This tutorial is also deploying code to the GCP to run clusters of application node, etc.  To accomplish this you will need to have setup a GCP account and install the Google Cloud SDK.  That is left up to the reader to figure out but a good start would be to review the google documentation [here](https://cloud.google.com/sdk/docs/quickstarts)
 
 ### Set Default Python3 in Ubuntu Linux
 

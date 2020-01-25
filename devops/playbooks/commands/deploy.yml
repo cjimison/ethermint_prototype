@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+    cluster_project: ethermint-prototype
+    cluster_location: us-central1-a
+    cluster_name: ethermint
+    cluster_node_count: 2
+    cluster_node_type: e2-micro
+    cluster_project: ethermint-prototype
+    cluster_key: ../../keys/ep_gcp.json
+    cluster_state: present
+  
+  tasks:
+    - name: 
+      gcp_container_cluster:
+        name: '{{ cluster_name }}'
+        initial_node_count: '{{ cluster_node_count }}'
+        master_auth:
+          username: cluster_admin
+          password: my-secret-password
+        node_config:
+          machine_type: '{{cluster_node_type}}'
+          disk_size_gb: 10
+          preemptible: yes
+        location: '{{ cluster_location }}'
+        project: '{{ cluster_project }}'
+        auth_kind: serviceaccount
+        service_account_file: '{{cluster_key}}'
+        state: '{{cluster_state}}'

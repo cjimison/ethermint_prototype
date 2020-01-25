@@ -6,15 +6,19 @@
         "emint",
         "emintcli",
         "emintd",
+        "gcloud",
         "gentx",
         "gentxs",
         "hostkey",
         "iproute",
         "laddr",
         "noninteractive",
+        "openshift",
         "openssl",
+        "preemptible",
         "proto",
         "rebar",
+        "serviceaccount",
         "tzdata"
     ]
 }

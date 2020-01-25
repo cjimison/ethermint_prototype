@@ -30,3 +30,39 @@
       shell: |
         pip install --user openshift
       when: not openshift_status.stdout
+    
+    - name: Check if requests pip module is installed
+      shell: |
+        pip list --format=legacy | grep requests
+      register: requests_status
+      changed_when: false
+      ignore_errors: true
+
+    - name: Installed requests pip module if needed
+      shell: |
+        pip install --user requests
+      when: not requests_status.stdout
+    
+    - name: Check if google-auth pip module is installed
+      shell: |
+        pip list --format=legacy | grep google-auth
+      register: google_status
+      changed_when: false
+      ignore_errors: true
+
+    - name: Installed google-auth pip module if needed
+      shell: |
+        pip install --user google-auth
+      when: not google_status.stdout
+    
+    - name: Check if gcloud is installed
+      shell: |
+        which gcloud
+      register: gcloud_status
+      changed_when: false
+      ignore_errors: true
+
+    - name: Configure gcloud registry
+      shell: |
+        gcloud auth configure-docker
+      when: not gcloud_status.stdout

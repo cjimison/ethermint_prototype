@@ -1,0 +1,21 @@
+# Publish up the containers to google cloud compute
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    builds: [
+      ethermint_chain,
+      ethermint_node,
+      marketplace,
+      bot
+    ]
+  
+  tasks:
+    - name: Tag publish images to Google Registry
+      docker_image:
+        name: 'forte/{{ item }}'
+        repository: 'us.gcr.io/ethermint-prototype/{{ item }}'
+        push: yes
+        source: local
+      with_items: '{{ builds }}'

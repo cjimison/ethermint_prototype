@@ -220,37 +220,43 @@ elif args.user_test_local:
 #----------------------------------------------------------------------------
 # --publish Handler
 #----------------------------------------------------------------------------
-elif NONE != args.publish:
-    print("NOT IMPLEMENTED")
+elif None != args.publish:
+    print("Publish images to Google Registry")
+    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/publish.yml {1}'
+    os.system(cmd.format(ansible_root, verboseOpts))
+    print("Publish images Completed!!")
 
 #----------------------------------------------------------------------------
 # --list Handler
 #----------------------------------------------------------------------------
-elif NONE != args.list:
+elif None != args.list:
     print("NOT IMPLEMENTED")
 
 #----------------------------------------------------------------------------
 # --deploy Handler
 #----------------------------------------------------------------------------
-elif NONE != args.deploy:
-    print("NOT IMPLEMENTED")
+elif None != args.deploy:
+    print("Deploying the Cluster")
+    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/deploy.yml {1}'
+    os.system(cmd.format(ansible_root, verboseOpts))
+    print("Deploy Cluster Completed!!")
 
 #----------------------------------------------------------------------------
 # --validate Handler
 #----------------------------------------------------------------------------
-elif NONE != args.validate:
+elif None != args.validate:
     print("NOT IMPLEMENTED")
 
 #----------------------------------------------------------------------------
 # --update Handler
 #----------------------------------------------------------------------------
-elif NONE != args.update:
+elif None != args.update:
     print("NOT IMPLEMENTED")
 
 #----------------------------------------------------------------------------
 # --release Handler
 #----------------------------------------------------------------------------
-elif NONE != args.release:
+elif None != args.release:
     print("NOT IMPLEMENTED")
 
 #----------------------------------------------------------------------------
