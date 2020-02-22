@@ -1,0 +1,3 @@
+---
+- name: Build the Market Server Image
+  import_playbook: build_image_marketplace.yml

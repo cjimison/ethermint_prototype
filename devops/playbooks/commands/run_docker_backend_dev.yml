@@ -1,0 +1,48 @@
+# Launch the backend services just as a standard docker setup.
+# This should be thought of a the quick and dirty dev option.
+# The expectations is all images are already build, and we are just launching
+# up the required resources to dev in a local environment
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: "Create the backend docker network"
+      docker_network:
+        name: backend_local
+        state: present
+
+    - name: "Create the ethermint chain"
+      docker_container:
+        name: emint_chain
+        image: forte/ethermint_chain
+        networks:
+          - name: backend_local
+        ports: "8545:8545"
+        state: present
+
+    - name: "Create the cockroach 1 backend in docker"
+      docker_container:
+        name: roach1
+        image: cockroachdb/cockroach:v19.2.2
+        networks:
+          - name: backend_local
+        command: start --insecure --join=roach1,roach2,roach3
+        ports:
+          - "26257:26257"
+          - "8080:8080"
+
+    - name: "Create the cockroach 2 backend in docker"
+      docker_container:
+        name: roach2
+        image: cockroachdb/cockroach:v19.2.2
+        networks:
+          - name: backend_local
+        command: start --insecure --join=roach1,roach2,roach3
+
+    - name: "Create the cockroach 3 backend in docker"
+      docker_container:
+        name: roach3
+        image: cockroachdb/cockroach:v19.2.2
+        networks:
+          - name: backend_local
+        command: start --insecure --join=roach1,roach2,roach3

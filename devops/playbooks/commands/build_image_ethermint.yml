@@ -8,70 +8,77 @@
     chain_key_name: local_ethermint_key
     chain_key_password: local_ethermint_password
     chain_moniker: local_ethermint_moniker
-    chain_id: 1   
+    chain_id: 1
+    start_script: |
+      #!/bin/bash
+      echo "hello"
+      /usr/bin/emintd start --pruning=nothing &
+      sleep 10
+      yes {{ chain_key_password }} | /usr/bin/emintcli rest-server --laddr tcp://0.0.0.0:8545 --unlock-key {{ chain_key_name }}
 
   pre_tasks:
     - name: Create and start the Builder container
       docker_container:
         image: golang:alpine
-        name: '{{ container_name }}_builder'
+        name: "{{ container_name }}_builder"
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
         command: sleep infinity
-    
+
     - name: Add the new Builder container to Ansible Hosts
       add_host:
-        hostname: '{{ container_name }}_builder'
+        hostname: "{{ container_name }}_builder"
         ansible_connection: docker
         ansible_python_interpreter: /usr/bin/python3
 
     - name: Kill any App containers
       docker_container:
-        name: '{{ container_name }}'
+        name: "{{ container_name }}"
         state: absent
 
     - name: Ensure Python is installed on Builder container
       raw: >
         apk update &&
         apk upgrade &&
-        apk add python3 git docker py-pip &&
+        apk add python3 git docker py-pip bash curl &&
         pip3 install docker
-      delegate_to: '{{ container_name }}_builder'
-    
+      delegate_to: "{{ container_name }}_builder"
+
     - name: Gather facts of the Builder Container
       setup:
-      delegate_to: '{{ container_name }}_builder'
-    
+      delegate_to: "{{ container_name }}_builder"
+
     - name: Clone the ethermint repo into the Builder Container
       git:
         repo: https://github.com/starcard-org/ethermint.git
-        dest: '/root/{{ container_name }}'
+        dest: "/root/{{ container_name }}"
         accept_hostkey: yes
-      delegate_to: '{{ container_name }}_builder'
-    
-    - name: Build the Base container 
+      delegate_to: "{{ container_name }}_builder"
+
+    - name: Build the Base container
       docker_image:
-        name: '{{ container_name }}_base'
+        name: "{{ container_name }}_base"
         build:
           pull: yes
           path: /root/{{ container_name }}
         source: build
-      delegate_to: '{{ container_name }}_builder'
+      delegate_to: "{{ container_name }}_builder"
 
     - name: Launch the Base container
       docker_container:
-        image: '{{ container_name }}_base'
-        name: '{{ container_name }}_base'
+        image: "{{ container_name }}_base"
+        name: "{{ container_name }}_base"
         state: started
 
     - name: Add the Base container to the inventory
       add_host:
-        hostname: '{{ container_name }}_base'
+        hostname: "{{ container_name }}_base"
         ansible_connection: docker
         ansible_python_interpreter: /usr/bin/python3
-    
+
     - name: Config the Chain container
       raw: >
+        apk add bash python3 &&
         /usr/bin/yes {{ chain_key_password }} | /usr/bin/emintcli keys add {{ chain_key_name }} > /root/chain_key_output.txt &&
         /usr/bin/emintd init {{ chain_moniker }} --chain-id {{ chain_id }} > /root/chain_init_output.txt  &&
         /usr/bin/emintcli config chain-id {{ chain_id }} &&
@@ -82,71 +89,75 @@
         /usr/bin/yes {{ chain_key_password }} | /usr/bin/emintd gentx --name {{ chain_key_name }} &&
         /usr/bin/emintd collect-gentxs > /root/chain_collect_output.txt &&
         /usr/bin/emintd validate-genesis
-      delegate_to: '{{ container_name }}_base'
-    
+      delegate_to: "{{ container_name }}_base"
+
+    - name: Write a bash script to run the services needed
+      copy:
+        content: "{{ start_script }}"
+        dest: /emint_start.sh
+        mode: "0755"
+      delegate_to: "{{ container_name }}_base"
+
     - name: Commit the Chain container to docker.
       command: >
         docker commit
-        -c 'CMD ["/usr/bin/emintd", "start", "--pruning=nothing"]'
+        -c 'CMD ["/emint_start.sh"]'
         {{ container_name }}_base {{ container_folder }}/{{ container_name }}_chain
-    
-    - name: Create Container for the Node
-      docker_container:
-        image: alpine
-        name: '{{ container_name }}_node'
-        command: sleep infinity
 
-    - name: Add the Node container to the inventory
-      add_host:
-        hostname: '{{ container_name }}_node'
-        ansible_connection: docker
-        ansible_python_interpreter: /usr/bin/python3
-    
-    - name: Ensure Python is installed on Node container
-      raw: >
-        apk update &&
-        apk upgrade &&
-        apk add --update ca-certificates python3 
-      delegate_to: '{{ container_name }}_node'
-    
-    - name: Pull over the needed commands to the Node container
-      raw: >
-        docker cp ethermint_base:/usr/bin/emintcli ./emintcli && 
-        docker cp ethermint_base:/usr/bin/emintd ./emintd
-    
-    - name: Copy over the needed commands to the Node container
-      raw: >
-        docker cp ./emintcli ethermint_node:/usr/bin/emintcli && 
-        docker cp ./emintd ethermint_node:/usr/bin/emintd
-    
-    - name: Remove the files
-      raw: >
-        rm ./emintcli &&
-        rm ./emintd
+  #-c 'CMD ["/emint_start.sh"]'
+  #-c 'CMD ["/bin/sh", "-c", "/usr/bin/emintd start --pruning=nothing & sleep 10; echo {{ chain_key_password }} | /usr/bin/emintcli rest-server --laddr tcp://0.0.0.0:8545 --unlock-key {{ chain_key_password }}"]'
 
-    - name: Commit the Node container to docker.
-      command: >
-        docker commit
-        -c 'CMD ["/usr/bin/emintcli", "rest-server", "--laddr", "\"tcp://emint_chain:8545\"", "--unlock-key", "{{chain_key_name}}"]'
-        {{ container_name }}_node {{ container_folder }}/{{ container_name }}_node
+  #- name: Create Container for the Node
+  #  docker_container:
+  #    image: alpine
+  #    name: "{{ container_name }}_node"
+  #    command: sleep infinity
+  #- name: Add the Node container to the inventory
+  #  add_host:
+  #    hostname: "{{ container_name }}_node"
+  #    ansible_connection: docker
+  #    ansible_python_interpreter: /usr/bin/python3
+  #- name: Ensure Python is installed on Node container
+  #  raw: >
+  #    apk update &&
+  #    apk upgrade &&
+  #    apk add --update ca-certificates python3
+  #  delegate_to: "{{ container_name }}_node"
+  #- name: Pull over the needed commands to the Node container
+  #  raw: >
+  #    docker cp ethermint_base:/usr/bin/emintcli ./emintcli &&
+  #    docker cp ethermint_base:/usr/bin/emintd ./emintd
+  #- name: Copy over the needed commands to the Node container
+  #  raw: >
+  #    docker cp ./emintcli ethermint_node:/usr/bin/emintcli &&
+  #    docker cp ./emintd ethermint_node:/usr/bin/emintd
+  #- name: Remove the files
+  #  raw: >
+  #    rm ./emintcli &&
+  #    rm ./emintd
+  #- name: Commit the Node container to docker.
+  #  command: >
+  #    docker commit
+  #    -c 'CMD ["/usr/bin/emintcli", "rest-server", "--laddr", "\"tcp://emint_chain:8545\"", "--unlock-key", "{{chain_key_name}}"]'
+  #    {{ container_name }}_node {{ container_folder }}/{{ container_name }}_node
 
-  post_tasks: 
-    - name: Remove the Node container
-      docker_container:
-        name: '{{ container_name }}_node'
-        state: absent
+  post_tasks:
+    #- name: Remove the Node container
+    #  docker_container:
+    #    name: "{{ container_name }}_node"
+    #    state: absent
 
     - name: Remove the Base container
       docker_container:
-        name: '{{ container_name }}_base'
+        name: "{{ container_name }}_base"
         state: absent
 
     - name: Delete the Base container image
       docker_image:
-        name: '{{ container_name }}_base'
+        name: "{{ container_name }}_base"
         state: absent
 
     - name: Remove Builder container.
       docker_container:
-        name: '{{ container_name }}_builder'
+        name: "{{ container_name }}_builder"
         state: absent

@@ -1,4 +1,9 @@
 ---
+- name: Check if the compiler is running
+  docker_container_info:
+    name: '{{ compiler_name }}'
+  register: results
+
 - name: Launch the Compiler Server and execute the build command
   docker_container:
     image: '{{ container_space }}/{{ compiler_name }}'
@@ -7,22 +12,15 @@
       - /var/run/docker.sock:/var/run/docker.sock
       - ../../../src:/src
     command: sleep infinity
+    state: started
+    trust_image_content: yes
+  when: not results.exists
 
 - name: Add the Compiler container to Ansible Hosts
   add_host:
     hostname: '{{ compiler_name }}'
     ansible_connection: docker
     ansible_python_interpreter: /usr/bin/python3
-
-- name: Update packages and install needed tools
-  raw: |
-    apt-get update -y
-    apt-get upgrade -y
-    apt-get install -y git curl wget openssl iproute2
-    echo "LANG=en_US.UTF-8" > /etc/default/locale
-  delegate_to: '{{ compiler_name }}'
-  args:
-    executable: /bin/bash
 
 - name: 'Build the {{build_name}} release'
   raw: |
@@ -33,17 +31,42 @@
   args:
     executable: /bin/bash
 
+- name: Check if the Marketplace container already exists
+  docker_image_info:
+    name: forte/marketplace
+  register: image_result
+
 - name: 'Create the new {{build_name}} to hold the build in'
   docker_container:
     image: ubuntu:18.04
     name: '{{ container_name }}'
     command: sleep infinity
+  when: image_result.images == []
+
+- name: 'Load the existing image {{build_name}} to hold the build in'
+  docker_container:
+    image: forte/marketplace
+    name: '{{ container_name }}'
+    command: sleep infinity
+  when: image_result.images != []
 
 - name: 'Add the {{build_name}} container to Ansible Hosts'
   add_host:
     hostname: '{{ container_name }}'
     ansible_connection: docker
     ansible_python_interpreter: /usr/bin/python3
+
+- name: Install Base packages
+  raw: |
+    apt-get update -y &&
+    apt-get upgrade -y &&
+    export DEBIAN_FRONTEND=noninteractive &&
+    apt-get -y install wget curl git openssl iproute2 build-essential openssl language-pack-en tzdata --fix-missing &&
+    echo "LANG=en_US.UTF-8" > /etc/default/locale
+  delegate_to: '{{ container_name }}'
+  args:
+    executable: /bin/bash
+  when: image_result.images == []
 
 - name: 'Copy over the build files for the {{build_name}} app to use'
   raw: >
@@ -55,22 +78,7 @@
     -c 'CMD ["./{{build_name}}/bin/{{build_name}}", "start"]'
     {{ container_name }} {{ container_space }}/{{ container_name }}
 
-- name: Cleanup build files
-  raw: |
-    cd /src/proto_app &&
-    rm -rf _build &&
-    rm -rf deps &&
-    rm -rf ../{{build_name}}
-  delegate_to: '{{ compiler_name }}'
-  args:
-    executable: /bin/bash
-
 - name: 'Stop the running {{build_name}} container'
   docker_container:
     name: '{{ container_name }}'
-    state: absent
-
-- name: Stop the running compiler container
-  docker_container:
-    name: '{{ compiler_name }}'
     state: absent

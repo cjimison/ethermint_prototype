@@ -11,6 +11,7 @@
         "gentxs",
         "hostkey",
         "iproute",
+        "kubectl",
         "laddr",
         "noninteractive",
         "openshift",

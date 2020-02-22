@@ -62,16 +62,36 @@ parser.add_argument('--setup_local',
                     help='Installs any additional Ansible packages needed.',
                     action="store_true")
 
-parser.add_argument('--build_local',
-                    help='Build all local container',
+parser.add_argument('--build_images',
+                    help='Build all local images',
+                    action="store_true")
+
+parser.add_argument('--start_env_local',
+                    help='Start up a local application development environment.',
+                    action="store_true")
+
+parser.add_argument('--stop_env_local',
+                    help='Stop a local application development environment.',
                     action="store_true")
 
 parser.add_argument('--app_dev',
                     help='Compile the Application code on the host machine',
                     action="store_true")
 
+parser.add_argument('--app_run',
+                    help='Compile the Application code on the host machine',
+                    action="store_true")
+
 parser.add_argument('--bot_dev',
                     help='Compile the Bot code on the host machine',
+                    action="store_true")
+
+parser.add_argument('--bot_run',
+                    help='Compile the Bot code on the host machine',
+                    action="store_true")
+
+parser.add_argument('--clean_builds',
+                    help='Cleans up any build files, etc',
                     action="store_true")
 
 parser.add_argument('--unit_test_dev',
@@ -113,6 +133,10 @@ parser.add_argument('--update',
 parser.add_argument('--release',
                     help='releases a deployment',
                     action="store")
+
+parser.add_argument('--dev',
+                    help='Testing scripts or stuff in development',
+                    action="store_true")
 
 #----------------------------------------------------------------------------
 # Parse the Commandline Arguments
@@ -173,25 +197,67 @@ elif args.setup_local:
     print("Also given the order of ops you may see some failures.  Try running command a second time and report back if failures persist")
 
 #----------------------------------------------------------------------------
-# --build_local Handler
+# --build_images Handler
 #----------------------------------------------------------------------------
-elif args.build_local:
+elif args.build_images:
     print("Building the all the docker containers needed")
-    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/build.yml {1}'
+    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/build_images.yml {1}'
     os.system(cmd.format(ansible_root, verboseOpts))
     print("Build Local Containers Completed!!")
+
+#----------------------------------------------------------------------------
+# --env_local Handler
+#----------------------------------------------------------------------------
+elif args.start_env_local:
+    print("Starting the local dev environment")
+    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/local_dev.yml --extra-vars "env_state=start" {1}'
+    os.system(cmd.format(ansible_root, verboseOpts))
+    print("Starting local environment Completed!!")
+
+#----------------------------------------------------------------------------
+# --env_local Handler
+#----------------------------------------------------------------------------
+elif args.stop_env_local:
+    print("Stopping local dev environment")
+    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/local_dev.yml --extra-vars "env_state=stop" {1}'
+    os.system(cmd.format(ansible_root, verboseOpts))
+    print("Stopping local environment Completed!!")
 
 #----------------------------------------------------------------------------
 # --app_dev Handler
 #----------------------------------------------------------------------------
 elif args.app_dev:
-    print("NOT IMPLEMENTED")
+    print("Building the application for local dev")
+    cmd = 'cd src/proto_app && MIX_ENV=prod mix release marketplace --path ../marketplace'
+    os.system(cmd)
+    print("Build Application Completed!!")
 
 #----------------------------------------------------------------------------
 # --bot_dev Handler
 #----------------------------------------------------------------------------
 elif args.bot_dev:
-    print("NOT IMPLEMENTED")
+    print("Building the bot for local dev")
+    cmd = 'cd src/proto_app && MIX_ENV=prod mix release bot --path ../bot'
+    os.system(cmd)
+    print("Build Application Completed!!")
+
+#----------------------------------------------------------------------------
+# --app_run Handler
+#----------------------------------------------------------------------------
+elif args.app_run:
+    print("Run the application for local dev")
+    cmd = './src/marketplace/bin/marketplace start_iex'
+    os.system(cmd)
+    print("Done!!")
+
+#----------------------------------------------------------------------------
+# --bot_run Handler
+#----------------------------------------------------------------------------
+elif args.bot_run:
+    print("Run the bot for local dev")
+    cmd = './src/bot/bin/bot start_iex'
+    os.system(cmd)
+    print("Done!!")
 
 #----------------------------------------------------------------------------
 # --unit_test_dev Handler
@@ -218,6 +284,25 @@ elif args.user_test_local:
     print("NOT IMPLEMENTED")
 
 #----------------------------------------------------------------------------
+# --clean Handler
+#----------------------------------------------------------------------------
+elif args.clean_builds:
+    print("Clean up any local files")
+    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/clean_builds.yml {1}'
+    os.system(cmd.format(ansible_root, verboseOpts))
+    print("Build Application Containers Completed!!")
+
+
+#----------------------------------------------------------------------------
+# --dev Handler
+#----------------------------------------------------------------------------
+elif args.dev:
+    print("Running Dev Commands")
+    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/dev.yml {1}'
+    os.system(cmd.format(ansible_root, verboseOpts))
+    print("Publish images Completed!!")
+
+#----------------------------------------------------------------------------
 # --publish Handler
 #----------------------------------------------------------------------------
 elif None != args.publish:
@@ -237,7 +322,7 @@ elif None != args.list:
 #----------------------------------------------------------------------------
 elif None != args.deploy:
     print("Deploying the Cluster")
-    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/deploy.yml {1}'
+    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/deploy.yml {1} --extra-vars "cluster_state=present"'
     os.system(cmd.format(ansible_root, verboseOpts))
     print("Deploy Cluster Completed!!")
 
@@ -257,7 +342,10 @@ elif None != args.update:
 # --release Handler
 #----------------------------------------------------------------------------
 elif None != args.release:
-    print("NOT IMPLEMENTED")
+    print("Release the Cluster")
+    cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/deploy.yml {1} --extra-vars "cluster_state=absent"'
+    os.system(cmd.format(ansible_root, verboseOpts))
+    print("Release of the Cluster Completed!!")
 
 #----------------------------------------------------------------------------
 # Unknown Operation

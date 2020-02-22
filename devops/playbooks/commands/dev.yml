@@ -1,0 +1,136 @@
+# This is a simple development command for testing and other operations where you need to just hand code
+# some stuff before it is put into actual playbooks, etc
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+    #container_state: absent
+    #item_state: absent
+    container_state: started
+    item_state: present
+  tasks:
+    - name: "Create the backend docker network"
+      docker_network:
+        name: backend_local
+        state: "{{ item_state }}"
+
+    - name: "Create the ethermint chain"
+      docker_container:
+        name: ethermint_chain1
+        image: forte/ethermint_chain
+        ports: "8545:8545"
+        state: "{{ container_state }}"
+        networks:
+          - name: backend_local
+
+    - name: "Create the cockroach 1 backend in docker"
+      docker_container:
+        name: roach1
+        image: cockroachdb/cockroach:v19.2.2
+        networks:
+          - name: backend_local
+        command: start --insecure --join=roach1,roach2,roach3
+        ports:
+          - "26257:26257"
+          - "8080:8080"
+        state: "{{ container_state }}"
+
+    - name: "Create the cockroach 2 backend in docker"
+      docker_container:
+        name: roach2
+        image: cockroachdb/cockroach:v19.2.2
+        networks:
+          - name: backend_local
+        command: start --insecure --join=roach1,roach2,roach3
+        state: "{{ container_state }}"
+
+    - name: "Create the cockroach 3 backend in docker"
+      docker_container:
+        name: roach3
+        image: cockroachdb/cockroach:v19.2.2
+        networks:
+          - name: backend_local
+        command: start --insecure --join=roach1,roach2,roach3
+        state: "{{ container_state }}"
+#- hosts: localhost
+#  gather_facts: false
+#  tasks:
+#    - name: "Create the backend docker network"
+#      docker_network:
+#        name: local_backend
+#
+#    - name: "Create the ethermint chain"
+#      docker_container:
+#        name: emint_chain
+#        image: forte/ethermint_chain
+#        networks:
+#          - name: local_backend
+#        ports: "8545:8545"
+#- name: "Create the ethermint node"
+#  docker_container:
+#    name: emint_node
+#    image: forte/ethermint_node
+#    networks:
+#      - name: "ethermint_demo"
+#    command: sleep infinity
+#- hosts: localhost
+#  gather_facts: false
+#
+#  tasks:
+#    - name: "Get all the pods"
+#      raw: |
+#        kubectl get pods --all-namespaces
+#      register: results
+#    - name: "Print all the pods"
+#      debug:
+#        msg: "{{results.stdout}}"
+#
+#    - name: "Get all the services"
+#      raw: |
+#        kubectl get services --all-namespaces
+#      register: results
+#    - name: "Print all the services"
+#      debug:
+#        msg: "{{results.stdout}}"
+#    - name: Create a Deployment for Application layer
+#      k8s:
+#        state: present
+#        definition:
+#          apiVersion: apps/v1
+#          kind: Deployment
+#          metadata:
+#            name: forte-marketplace
+#            namespace: default
+#          spec:
+#            replicas: 1
+#            selector:
+#              matchLabels:
+#                app: forte-marketplace
+#            template:
+#              metadata:
+#                labels:
+#                  app: forte-marketplace
+#              spec:
+#                containers:
+#                - name: forte-marketplace
+#                  image: forte/marketplace
+#                  imagePullPolicy: Never
+#                  ports:
+#                  - containerPort: 8180
+#
+#    - name: Create a Service for Application layer
+#      k8s:
+#        state: present
+#        definition:
+#          apiVersion: v1
+#          kind: Service
+#          metadata:
+#            name: forte-marketplace
+#            namespace: default
+#          spec:
+#            type: LoadBalancer
+#            ports:
+#              - port: 8180
+#                targetPort: 8180
+#            selector:
+#              app: forte-marketplace

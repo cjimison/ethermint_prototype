@@ -28,6 +28,14 @@ NOTE:
 
 The software assumes that you have Python at version 3.6 so if you run `python --version` and get back 2.x then you need to switch your default python around.
 
+TIP:
+
+When running ansible commands you may see that formating looks off.  Newlines are not printed, etc.  This is easily fixed by adding the following to you terminals RC file (~/.bashrc or ~/.zshrc, etc):
+
+`export ANSIBLE_STDOUT_CALLBACK=debug`
+
+this will print out the newlines and make life much easier when debugging issues
+
 ## Google Cloud SDK
 
 This tutorial is also deploying code to the GCP to run clusters of application node, etc.  To accomplish this you will need to have setup a GCP account and install the Google Cloud SDK.  That is left up to the reader to figure out but a good start would be to review the google documentation [here](https://cloud.google.com/sdk/docs/quickstarts)

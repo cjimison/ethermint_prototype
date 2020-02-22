@@ -1,0 +1,42 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    container_space: forte
+    compiler_name: compiler
+
+  tasks:
+    - name: Check if the compiler is running
+      docker_container_info:
+        name: '{{ compiler_name }}'
+      register: results
+
+    - name: Launch the Compiler Server and execute the build command
+      docker_container:
+        image: '{{ container_space }}/{{ compiler_name }}'
+        name: '{{ compiler_name }}'
+        volumes:
+          - ../../../src:/src
+        command: sleep infinity
+        state: started
+        trust_image_content: yes
+      when: not results.exists
+
+    - name: Add the Compiler container to Ansible Hosts
+      add_host:
+        hostname: '{{ compiler_name }}'
+        ansible_connection: docker
+        ansible_python_interpreter: /usr/bin/python3
+
+    - name: 'Remove all build files'
+      raw: |
+        cd /src/proto_app &&
+        rm -rf _build &&
+        rm -rf deps &&
+        cd ../ &&
+        rm -rf bot
+        rm -rf marketplace
+      delegate_to: '{{ compiler_name }}'
+      args:
+        executable: /bin/bash

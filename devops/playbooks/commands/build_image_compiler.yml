@@ -28,19 +28,12 @@
         apt-get update -y &&
         apt-get upgrade -y &&
         export DEBIAN_FRONTEND=noninteractive &&
-        apt-get -y install wget curl git build-essential openssl language-pack-en tzdata --fix-missing &&
+        apt-get -y install wget curl git openssl iproute2 build-essential openssl language-pack-en tzdata --fix-missing &&
         echo "LANG=en_US.UTF-8" > /etc/default/locale
       delegate_to: '{{ container_name }}'
       args:
         executable: /bin/bash
         
-    #- name: Setup language pack 
-    #  raw: |
-    #    locale-gen "en_US.UTF-8" &&
-    #    dpkg-reconfigure locales &&
-    #    update-local=en_US.UTF-8
-    #  delegate_to: '{{ container_name }}'
-
     - name: Install Elixir and Erlang Packages
       raw: |
         wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb && 
@@ -50,6 +43,8 @@
         mix local.hex --force &&
         mix local.rebar --force
       delegate_to: '{{ container_name }}'
+      args:
+        executable: /bin/bash
 
     - name: Commit the Compiler Image to Docker
       command: >

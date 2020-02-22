@@ -9,9 +9,7 @@
     cluster_name: ethermint
     cluster_node_count: 2
     cluster_node_type: e2-micro
-    cluster_project: ethermint-prototype
     cluster_key: ../../keys/ep_gcp.json
-    cluster_state: present
   
   tasks:
     - name: 
@@ -30,3 +28,4 @@
         auth_kind: serviceaccount
         service_account_file: '{{cluster_key}}'
         state: '{{cluster_state}}'
+      

@@ -1,0 +1,1 @@
+This folder is where all the outputed html goes for the portal interface
