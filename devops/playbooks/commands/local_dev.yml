@@ -7,6 +7,7 @@
     ansible_python_interpreter: /usr/bin/python3
     container_state: started
     item_state: present
+    action_class: Create
   tasks:
     - set_fact:
         container_state: absent
@@ -15,24 +16,20 @@
         item_state: absent
       when: env_state == 'stop'
 
-    - name: "Create the backend docker network"
+    - set_fact:
+        action_class: Release
+      when: env_state == 'stop'
+
+    - name: "{{ action_class }} the backend docker network"
       docker_network:
         name: backend_local
         state: "{{ item_state }}"
 
-    - name: "Create the ethermint chain"
-      docker_container:
-        name: ethermint_chain1
-        image: forte/ethermint_chain
-        ports: "8545:8545"
-        state: "{{ container_state }}"
-        networks:
-          - name: backend_local
-
-    - name: "Create the cockroach 1 backend in docker"
+    - name: "{{ action_class }} the cockroach 1 backend in docker"
       docker_container:
         name: roach1
-        image: cockroachdb/cockroach:v19.2.2
+        hostname: roach1
+        image: cockroachdb/cockroach:v19.2.4
         networks:
           - name: backend_local
         command: start --insecure --join=roach1,roach2,roach3
@@ -41,20 +38,44 @@
           - "8080:8080"
         state: "{{ container_state }}"
 
-    - name: "Create the cockroach 2 backend in docker"
+    - name: Register the Cockroach container to the inventory
+      add_host:
+        hostname: "roach1"
+        ansible_connection: docker
+        ansible_python_interpreter: /usr/bin/python3
+      when: env_state != 'stop'
+
+    - name: "{{ action_class }} the cockroach 2 backend in docker"
       docker_container:
         name: roach2
-        image: cockroachdb/cockroach:v19.2.2
+        hostname: roach2
+        image: cockroachdb/cockroach:v19.2.4
         networks:
           - name: backend_local
         command: start --insecure --join=roach1,roach2,roach3
         state: "{{ container_state }}"
 
-    - name: "Create the cockroach 3 backend in docker"
+    - name: "{{ action_class }} the cockroach 3 backend in docker"
       docker_container:
         name: roach3
-        image: cockroachdb/cockroach:v19.2.2
+        hostname: roach3
+        image: cockroachdb/cockroach:v19.2.4
         networks:
           - name: backend_local
         command: start --insecure --join=roach1,roach2,roach3
         state: "{{ container_state }}"
+
+    - name: "{{ action_class }} the ethermint chain"
+      docker_container:
+        name: ethermint_chain1
+        image: forte/ethermint_chain
+        ports: "8545:8545"
+        state: "{{ container_state }}"
+        networks:
+          - name: backend_local
+
+    - name: "Initialize the cluster"
+      raw: >
+        ./cockroach init --insecure
+      when: env_state != 'stop'
+      delegate_to: "roach1"

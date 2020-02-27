@@ -40,6 +40,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
   name: 'signup',
   data () {
@@ -60,7 +61,22 @@ export default {
       if (!this.formReady) {
         return
       }
-      this.$router.push({ name: 'dashboard' })
+      axios.post('/portal/commands/v1/auth/register', {
+        username: this.email,
+        password: this.password,
+        password_confirm: this.password,
+        email: this.email,
+        meta: {}
+      })
+        .then(function (response) {
+          this.$router.push({ name: 'dashboard' })
+        })
+        .catch((err) => {
+          //this.$router.push({ name: 'dashboard' })
+          console.log(err)
+        })
+
+      //this.$router.push({ name: 'dashboard' })
     },
   },
   computed: {

@@ -53,14 +53,14 @@ export default {
         return
       }
       axios.post('/v1/auth/login', {
-        email: this.email,
+        username: this.email,
         password: this.password,
       })
         .then(function (response) {
           this.$router.push({ name: 'dashboard' })
         })
         .catch((err) => {
-          this.$router.push({ name: 'dashboard' })
+          //this.$router.push({ name: 'dashboard' })
           console.log(err)
         })
     },

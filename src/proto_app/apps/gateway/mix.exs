@@ -29,7 +29,7 @@ defmodule Gateway.MixProject do
       {:cowboy, "~> 2.7", override: true},
       {:plug_cowboy, "~> 2.1.1"},
       {:jason, "~> 1.1"},
-      {:access_pass, git: "https://github.com/cjimison/accesspass.git"}
+      {:access_pass, git: "https://github.com/AppDoctorIo/accesspass.git"}
 
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},

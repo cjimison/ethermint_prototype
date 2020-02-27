@@ -14,11 +14,11 @@ defmodule Gateway.Portal.Commands.V1.Receiver.Root do
   plug(:dispatch)
 
   get "/ping" do
-    send_resp(conn, 200, Gateway.Portal.Handler.ping())
+    send_resp(conn, 200, Gateway.Portal.Handler.Root.ping())
   end
 
   get "/stats" do
-    send_resp(conn, 200, Gateway.Portal.Handler.ping())
+    send_resp(conn, 200, Gateway.Portal.Handler.Root.ping())
   end
 
   match _ do
