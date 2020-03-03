@@ -1,6 +1,7 @@
 defmodule Gateway.Portal.Commands.Handler.Auth do
   @moduledoc """
   """
+  require Logger
 
   @spec check(String.t()) :: {:error, <<_::160>>} | {:ok, map}
   def check(accessToken) do
@@ -18,9 +19,22 @@ defmodule Gateway.Portal.Commands.Handler.Auth do
     AccessPass.register(data)
   end
 
+  def confirm(confirmId) do
+    AccessPass.confirm(confirmId)
+  end
+
   @spec login(String.t(), String.t()) :: {:error, <<_::200, _::_*64>>} | {:ok, map}
   def login(username, password) do
-    AccessPass.login(username, password)
+    case AccessPass.login(username, password) do
+      {:ok, map} ->
+        # TODO:
+        # Lets pull out the meta data.  This should really
+        # be returned as part of the login.
+        {:ok, Map.put(map, "meta", Storage.Auth.User.metaByName(username))}
+
+      e ->
+        e
+    end
   end
 
   def logout(accessToken) do

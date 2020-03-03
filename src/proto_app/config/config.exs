@@ -28,6 +28,8 @@ config :access_pass,
   repo: Storage.Repo,
   from: "cjimison@gmail.com"
 
+config :access_pass, overrides_module: Gateway.Portal.Templates.Email
+
 # config :access_pass, :ecto_repos, [AccessPass.Repo]
 # config :access_pass, AccessPass.Repo,
 #  adapter: Ecto.Adapters.CockroachDB,

@@ -212,6 +212,9 @@ elif args.start_env_local:
     print("Starting the local dev environment")
     cmd = 'ansible-playbook -i {0}/inventory/hosts {0}/playbooks/commands/local_dev.yml --extra-vars "env_state=start" {1}'
     os.system(cmd.format(ansible_root, verboseOpts))
+    # Now lets run the migrate script
+    cmd = 'cd src/proto_app/apps/storage && ./setup.sh'
+    os.system(cmd)
     print("Starting local environment Completed!!")
 
 #----------------------------------------------------------------------------

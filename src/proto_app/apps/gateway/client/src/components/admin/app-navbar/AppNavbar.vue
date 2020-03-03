@@ -91,11 +91,11 @@ export default {
       required: true,
     },
   },
-  data () {
-    return {
-      userName: 'Vasili S',
-    }
-  },
+  //data () {
+  //  return {
+  //    userName: 'Vasili S',
+  //  }
+  //},
   computed: {
     isTopBarProxy: {
       get () {
@@ -104,6 +104,9 @@ export default {
       set (isTopBar) {
         this.$emit('update:isTopBar', isTopBar)
       },
+    },
+    userName() {
+      return this.$store.getters.authUserName;
     },
     minimizedProxy: {
       get () {

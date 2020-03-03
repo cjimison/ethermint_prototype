@@ -28,7 +28,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 export default {
   name: 'login',
   data () {
@@ -47,22 +46,26 @@ export default {
   },
   methods: {
     onsubmit () {
+      var self = this;
       this.emailErrors = this.email ? [] : ['Email is required']
       this.passwordErrors = this.password ? [] : ['Password is required']
       if (!this.formReady) {
         return
       }
-      axios.post('/v1/auth/login', {
-        username: this.email,
-        password: this.password,
-      })
-        .then(function (response) {
-          this.$router.push({ name: 'dashboard' })
-        })
-        .catch((err) => {
-          //this.$router.push({ name: 'dashboard' })
-          console.log(err)
-        })
+      this.$store.dispatch('authLogin', { 
+        userName: this.email, 
+        password: this.password, 
+        handler: (success, rsp) => {
+          if(success)
+          {
+            self.$router.push({ name: 'dashboard' });
+          }
+          else
+          {
+            // TODO:  I should show a pop-up here or something
+            console.log("Failed to log in user: " + JSON.stringify(rsp));
+          }
+      }});
     },
   },
 }

@@ -23,11 +23,15 @@ defmodule Gateway.Portal.Commands.V1.Receiver.Auth do
   get "/check" do
     case getHeaderValue(conn, "access-token") do
       nil ->
+        Logger.debug("*** I got the check but the access-token is nil")
         send_resp(conn, 422, "Missing request parameters: access-token")
 
       token ->
+        Logger.debug("*** Got access token")
+
         case Gateway.Portal.Commands.Handler.Auth.check(token) do
           {:ok, meta} ->
+            Logger.debug("*** Meta!!! #{inspect(meta)}")
             jsonRsp(conn, 200, %{ok: meta})
 
           {:error, errorMessage} ->
@@ -77,6 +81,47 @@ defmodule Gateway.Portal.Commands.V1.Receiver.Auth do
 
   # ----------------------------------------------------------------------------
   # Confirm a user is on the system?
+
+  get "/confirm" do
+    case conn.params do
+      nil ->
+        send_resp(conn, 422, "Missing boday parameters")
+
+      params ->
+        Logger.debug("*** Params = #{inspect(params)}")
+
+        case params["confirm_id"] do
+          nil ->
+            send_resp(conn, 422, "Missing request parameters: confirm_id")
+
+          id ->
+            Logger.debug("*** id = #{inspect(id)}")
+
+            case Gateway.Portal.Commands.Handler.Auth.confirm(id) do
+              {:ok, _data} ->
+                msg = """
+                <!DOCTYPE html>
+                <html>
+                  <head>
+                      <title>Account Confirmed</title>
+                      <meta http-equiv = "refresh" content = "0; url = /index.html#/auth/login" />
+                  </head>
+                  <body>
+                      <p>Thank you.  Forwarding you to login.</p>
+                  </body>
+                </html>
+                """
+
+                send_resp(conn, 200, msg)
+
+              {:error, errorMessage} ->
+                Logger.error("Error Register user #{inspect(errorMessage)}")
+                jsonRsp(conn, 400, %{error: "unauthorized"})
+            end
+        end
+    end
+  end
+
   post "/confirm" do
     case conn.body_params do
       nil ->
@@ -88,7 +133,7 @@ defmodule Gateway.Portal.Commands.V1.Receiver.Auth do
             send_resp(conn, 422, "Missing request parameters: confirm_id")
 
           id ->
-            case Gateway.Portal.Commands.Handler.Auth.register(id) do
+            case Gateway.Portal.Commands.Handler.Auth.confirm(id) do
               {:ok, data} ->
                 jsonRsp(conn, 201, %{ok: data})
 
@@ -116,7 +161,7 @@ defmodule Gateway.Portal.Commands.V1.Receiver.Auth do
         else
           case Gateway.Portal.Commands.Handler.Auth.login(user, pass) do
             {:ok, data} ->
-              jsonRsp(conn, 201, %{ok: data})
+              jsonRsp(conn, 200, %{ok: data})
 
             {:error, errorMessage} ->
               Logger.error("Error loging user in user #{inspect(errorMessage)}")
