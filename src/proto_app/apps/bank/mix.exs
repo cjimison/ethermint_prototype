@@ -30,10 +30,10 @@ defmodule Bank.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
       # {:sibling_app_in_umbrella, in_umbrella: true}
       {:ethereumex, "~> 0.6.0", override: true},
+      {:poison, "~> 4.0", override: true},
       {:exw3, "~> 0.4.4"},
       {:eth, "~> 0.4.0"},
-      {:eth_contract, "~> 0.2.9"},
-      {:poison, "~> 4.0", override: true}
+      {:eth_contract, "~> 0.2.9"}
     ]
   end
 end
