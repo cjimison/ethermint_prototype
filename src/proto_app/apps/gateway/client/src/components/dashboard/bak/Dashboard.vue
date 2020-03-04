@@ -19,11 +19,11 @@
 </template>
 
 <script>
-import DashboardCharts from './bak/DashboardCharts'
-import DashboardInfoBlock from './bak/DashboardInfoBlock'
-import DashboardTable from './bak/DashboardTable'
-import DashboardTabs from './bak/DashboardTabs'
-import DashboardMap from './bak/DashboardMap'
+import DashboardCharts from './DashboardCharts'
+import DashboardInfoBlock from './DashboardInfoBlock'
+import DashboardTable from './DashboardTable'
+import DashboardTabs from './DashboardTabs'
+import DashboardMap from './DashboardMap'
 
 export default {
   name: 'dashboard',

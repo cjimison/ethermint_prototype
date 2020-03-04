@@ -56,7 +56,7 @@
 
 <script>
 import countriesList from '@/data/CountriesList'
-import { getLineMapData } from '../../../data/maps/LineMapData'
+import { getLineMapData } from '../../../../data/maps/LineMapData'
 
 export default {
   name: 'billing-address-tab',

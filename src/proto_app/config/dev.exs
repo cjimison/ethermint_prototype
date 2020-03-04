@@ -6,3 +6,6 @@ config :gateway,
   marketplace_port: 8182,
   html_base: "http",
   dns_name: "localhost"
+
+config :ethereumex,
+  url: "http://localhost:8545"

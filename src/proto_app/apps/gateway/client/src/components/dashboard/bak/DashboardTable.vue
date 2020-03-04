@@ -65,7 +65,7 @@
 
 <script>
 import debounce from 'lodash/debounce'
-import data from '../markup-tables/data.json'
+import data from '../../markup-tables/data.json'
 
 export default {
   data () {

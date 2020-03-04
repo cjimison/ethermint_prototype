@@ -64,12 +64,12 @@
 </template>
 
 <script>
-import VaIconVue from '../../../iconset/VaIconVue.vue'
-import VaIconFree from '../../../iconset/VaIconFree.vue'
-import VaIconFresh from '../../../iconset/VaIconFresh.vue'
-import VaIconResponsive from '../../../iconset/VaIconResponsive.vue'
-import VaIconRich from '../../../iconset/VaIconRich.vue'
-import VaIconCleanCode from '../../../iconset/VaIconCleanCode.vue'
+import VaIconVue from '../../../../iconset/VaIconVue.vue'
+import VaIconFree from '../../../../iconset/VaIconFree.vue'
+import VaIconFresh from '../../../../iconset/VaIconFresh.vue'
+import VaIconResponsive from '../../../../iconset/VaIconResponsive.vue'
+import VaIconRich from '../../../../iconset/VaIconRich.vue'
+import VaIconCleanCode from '../../../../iconset/VaIconCleanCode.vue'
 
 export default {
   name: 'overview-tab',

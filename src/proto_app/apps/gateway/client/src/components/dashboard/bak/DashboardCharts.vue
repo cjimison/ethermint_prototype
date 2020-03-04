@@ -36,8 +36,8 @@
 </template>
 
 <script>
-import { getDonutChartData } from '../../data/charts/DonutChartData'
-import { getLineChartData } from '../../data/charts/LineChartData'
+import { getDonutChartData } from '../../../data/charts/DonutChartData'
+import { getLineChartData } from '../../../data/charts/LineChartData'
 import DashboardContributorsChart from './DashboardContributorsList'
 
 export default {
